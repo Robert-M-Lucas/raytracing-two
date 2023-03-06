@@ -5,7 +5,6 @@ pub use camera::Camera;
 use chrono::{Datelike, Timelike};
 use image::{DynamicImage, ImageBuffer, Rgb};
 use crate::{maths::{Line, Intersection, vectors::V3}, colour::Colour};
-pub mod renderer;
 pub mod render_config;
 pub use render_config::RenderConfig;
 
@@ -15,8 +14,8 @@ pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig) {
     println!("Saving screenshot...");
     
     let img = DynamicImage::ImageRgb8(ImageBuffer::<Rgb<u8>, Vec<u8>>::from_raw(
-        render_config.resolution.0, 
-        render_config.resolution.1, 
+        render_config.screenshot_resolution.0, 
+        render_config.screenshot_resolution.1, 
         pixel_data
     ).unwrap());
 
@@ -25,7 +24,7 @@ pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig) {
     let file_name = format!("Render {}-{}-{} {}-{}-{} {}x{}", 
         format!("{:0>2}", now.year()), format!("{:0>2}", now.month()), 
         format!("{:0>2}", now.day()), format!("{:0>2}", now.hour()), 
-        format!("{:0>2}", now.minute()), format!("{:0>2}", now.second()), render_config.resolution.0, render_config.resolution.1);
+        format!("{:0>2}", now.minute()), format!("{:0>2}", now.second()), render_config.screenshot_resolution.0, render_config.screenshot_resolution.1);
         
     let mut is_err = fs::create_dir_all("renders").is_err();
     if !is_err {
@@ -79,21 +78,21 @@ fn get_colour_recursively(ray: Line, render_config: &RenderConfig, reflection_de
         let object_surface_properties = scene_object.get_surface_type();
 
         if object_surface_properties.opaqueness != 0.0 { 
-            new_colour = new_colour + scene_object.get_colour(&closest_hit) * object_surface_properties.opaqueness;
+            new_colour = new_colour + (scene_object.get_colour(&closest_hit) * object_surface_properties.opaqueness);
         }
         if object_surface_properties.reflectiveness != 0.0 { 
             new_colour = new_colour +
-            get_colour_recursively(scene_object.get_reflection_line(&ray, &closest_hit), 
+            (get_colour_recursively(scene_object.get_reflection_line(&ray, &closest_hit), 
                 render_config, 
                 reflection_depth_remaining - 1
-            ) * object_surface_properties.reflectiveness;
+            ) * object_surface_properties.reflectiveness);
         }
         if object_surface_properties.transparency != 0.0 { 
             new_colour = new_colour + 
-            get_colour_recursively(scene_object.get_transparent_line(&ray, &closest_hit), 
+            (get_colour_recursively(scene_object.get_transparent_line(&ray, &closest_hit), 
                 render_config, 
                 reflection_depth_remaining - 1
-            ) * object_surface_properties.transparency;
+            ) * object_surface_properties.transparency);
         }
 
         new_colour.clone()

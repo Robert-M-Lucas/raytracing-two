@@ -30,11 +30,11 @@ fn main() {
             Box::new(Texture::new("static\\textures\\prototype2.png").unwrap()),
             SurfaceType::new(0.0, 0.0, 1.0),
         )),
-        Box::new(Sphere::new(V3::UP, 1.0, Colour::from_f64(1.0, 0.0, 0.0), SurfaceType::new(0.0, 1.0, 1.52)))
+        Box::new(Sphere::new(V3::UP, 1.0, Colour::from_f64(0.0, 0.0, 1.0), SurfaceType::new(0.9, 0.1, 1.52)))
     ];
 
     let render_config: RenderConfig = RenderConfig { 
-        resolution: _720P, 
+        resolution: _480P, 
         screenshot_resolution: _4K, 
         max_reflections: 2, 
         screenshot_max_reflection: 10, 
