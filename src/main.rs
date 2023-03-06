@@ -34,7 +34,7 @@ fn main() {
     ];
 
     let render_config: RenderConfig = RenderConfig { 
-        resolution: _240P, 
+        resolution: _720P, 
         screenshot_resolution: _4K, 
         max_reflections: 2, 
         screenshot_max_reflection: 10, 
