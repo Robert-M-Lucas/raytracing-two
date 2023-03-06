@@ -4,8 +4,9 @@ pub use plane::Plane;
 pub use sphere::Sphere;
 
 use crate::maths::Intersection;
-use crate::maths::Line;
+use crate::maths::lines::Line;
 use crate::colour::Colour;
+use crate::maths::vectors::V3;
 
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
@@ -27,6 +28,7 @@ pub trait Object {
     fn as_any(&self) -> &dyn Object;
     fn get_surface_type(&self) -> &SurfaceType;
     fn get_intersections(&self, line: &Line) -> Vec<Intersection>;
+    fn get_normal(&self, intersection: &Intersection) -> V3;
     fn get_colour(&self, intersection: &Intersection) -> &Colour;
     fn get_reflection_line(&self, line: &Line, intersection: &Intersection) -> Line;
     fn get_transparent_line(&self, line: &Line, intersection: &Intersection) -> Line;

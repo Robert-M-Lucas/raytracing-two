@@ -1,4 +1,4 @@
-use crate::maths::{vectors::V3, Line};
+use crate::maths::{vectors::V3, lines::Line};
 
 use super::RenderConfig;
 

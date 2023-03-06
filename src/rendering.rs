@@ -4,7 +4,7 @@ use std::fs;
 pub use camera::Camera;
 use chrono::{Datelike, Timelike};
 use image::{DynamicImage, ImageBuffer, Rgb};
-use crate::{maths::{Line, Intersection, vectors::V3}, colour::Colour};
+use crate::{maths::{lines::Line, Intersection, vectors::V3}, colour::Colour};
 pub mod render_config;
 pub use render_config::RenderConfig;
 
@@ -50,8 +50,8 @@ fn get_colour_recursively(ray: Line, render_config: &RenderConfig, reflection_de
         match Intersection::closest_bounded(&render_config.scene_objects[i].get_intersections(&ray), 0.000001, f64::INFINITY) {
             None => {},
             Some(hit) => { 
-                if hit.scale <= closest_dist { 
-                    closest_dist = hit.scale;
+                if hit.sized_line.scale <= closest_dist { 
+                    closest_dist = hit.sized_line.scale;
                     closest_hit = Some(hit.clone());
                     closest_object = Some(&render_config.scene_objects[i]);
                 }

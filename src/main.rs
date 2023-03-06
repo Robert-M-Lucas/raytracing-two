@@ -41,7 +41,11 @@ fn main() {
         sky_height: 1000.0, 
         sky_scale: 5000.0, 
         sky_texture: Box::new(Texture::new("static\\textures\\sky_prototype.png").unwrap()), 
-        scene_objects: scene_objects
+        scene_objects: scene_objects,
+        enable_direct_lighting: false,
+        screenshot_enable_direct_lighting: true,
+        enable_indirect_lighting: false, 
+        screenshot_enable_indirect_lighting: true,
     };
 
     let camera = Camera::new(&V3::new(-5.0, 1.0, 0.0), (0.0, 0.0), 0.866);

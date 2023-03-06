@@ -1,5 +1,5 @@
 use crate::colour::Colour;
-use crate::maths::{vectors::V3, Line};
+use crate::maths::{vectors::V3, lines::Line};
 use crate::maths::Intersection;
 use super::SurfaceType;
 use super::Object;
@@ -58,6 +58,10 @@ impl Object for Sphere {
         let int_2 = Intersection::new(line, sol_2, &line.scale(sol_2));
 
         vec!(int_1, int_2)
+    }
+
+    fn get_normal(&self, intersection: &Intersection) -> V3 {
+        intersection.position - self.centre
     }
 
 /*

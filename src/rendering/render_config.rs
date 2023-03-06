@@ -10,4 +10,8 @@ pub struct RenderConfig {
     pub sky_scale: f64,
     pub sky_texture: Box<dyn ColourGetter>,
     pub scene_objects: Vec<Box<dyn Object>>,
+    pub enable_direct_lighting: bool,
+    pub screenshot_enable_direct_lighting: bool,
+    pub enable_indirect_lighting: bool,
+    pub screenshot_enable_indirect_lighting: bool,
 }

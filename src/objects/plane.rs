@@ -1,5 +1,5 @@
 use crate::colour::Colour;
-use crate::maths::Line;
+use crate::maths::lines::Line;
 use crate::maths::Intersection;
 use crate::maths::vectors::V3;
 use crate::colour::colour_getters::ColourGetter;
@@ -140,6 +140,15 @@ impl Object for Plane {
         vec!(Intersection::new(line, sols.0, &line.scale(sols.0)))
     }
 
+    fn get_normal(&self, intersection: &Intersection) -> V3 {
+        // TODO: Do this without trial and error
+        let normal = self.vector_one.cross(&self.vector_two);
+        if (intersection.sized_line.line.point - (self.point + normal)).magnitude() < (intersection.sized_line.line.point - (self.point - normal)).magnitude() {
+            return normal;
+        }
+        normal * -1.0
+    }
+
     /*
     fn get_intersections_and_cache(&mut self, line: &Line) -> Vec<Intersection> {
         let d1 = self.vector_one.y * self.vector_two.z - self.vector_one.z * self.vector_two.y;
@@ -167,20 +176,20 @@ impl Object for Plane {
 
     fn get_colour(&self, intersection: &Intersection) -> &Colour {
         // TODO: Massive inefficiency due to recalculation
-        let sol = self.get_intersections(&intersection.line).unwrap();
+        let sol = self.get_intersections(&intersection.sized_line.line).unwrap();
         self.colour_getter.get_colour((sol.1, sol.2))
     }
 
     fn get_reflection_line(&self, _line: &Line, intersection: &Intersection) -> Line {
         Line::new(&intersection.position, 
-            &V3::reflected(&intersection.line.vector, 
+            &V3::reflected(&intersection.sized_line.line.vector, 
             &(&self.vector_one.cross(&self.vector_two)).normalised())
         )
     }
 
     fn get_transparent_line(&self, _line: &Line, intersection: &Intersection) -> Line {
         Line::new(&intersection.position,
-            &intersection.line.vector
+            &intersection.sized_line.line.vector
         )
     }
 

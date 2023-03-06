@@ -24,6 +24,10 @@ impl Colour {
         ((self.r * 255.0) as u8, (self.g * 255.0) as u8, (self.b * 255.0) as u8)
     }
 
+    pub fn limited(&self) -> Colour {
+        Colour { r: self.r.clamp(0.0, 1.0), g: self.g.clamp(0.0, 1.0), b: self.b.clamp(0.0, 1.0) }
+    }
+
     pub const BLACK: Colour = Colour { r: 0.0, g: 0.0, b: 0.0 };
 }
 
