@@ -1,4 +1,5 @@
 use std::ops;
+use std::cmp;
 
 pub mod colour_getters;
 
@@ -24,11 +25,22 @@ impl Colour {
         ((self.r * 255.0) as u8, (self.g * 255.0) as u8, (self.b * 255.0) as u8)
     }
 
-    pub fn limited(&self) -> Colour {
+    pub fn ceiling_limited(&self) -> Colour {
         Colour { r: self.r.clamp(0.0, 1.0), g: self.g.clamp(0.0, 1.0), b: self.b.clamp(0.0, 1.0) }
     }
 
+    pub fn proportionally_limited(&self) -> Colour {
+        let mut max = self.r;
+        if self.g > max { max = self.g; }
+        if self.b > max { max = self.b; }
+
+        if max <= 1.0 { return self.clone(); }
+
+        self * (1.0 / max)
+    }
+
     pub const BLACK: Colour = Colour { r: 0.0, g: 0.0, b: 0.0 };
+    pub const WHITE: Colour = Colour { r: 1.0, g: 1.0, b: 1.0 };
 }
 
 impl ops::Mul<Colour> for Colour {

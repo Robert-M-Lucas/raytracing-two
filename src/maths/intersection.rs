@@ -19,7 +19,7 @@ impl Intersection {
         let mut current_intersect = None;
 
         for i in 0..hits.len() {
-            let dist = hits[i].sized_line.line.vector.magnitude() * hits[i].sized_line.scale;
+            let dist = hits[i].sized_line.scale;
             if dist < closest_dist && dist > near_scale && dist < far_scale {
                 closest_dist = dist;
                 current_intersect = Some(i);
@@ -35,7 +35,7 @@ impl Intersection {
         let mut current_intersect = None;
 
         for i in 0..hits.len() {
-            let dist = hits[i].sized_line.line.vector.magnitude() * hits[i].sized_line.scale;
+            let dist = hits[i].sized_line.scale;
             if dist < closest_dist && dist > 0.0 {
                 closest_dist = dist;
                 current_intersect = Some(i);

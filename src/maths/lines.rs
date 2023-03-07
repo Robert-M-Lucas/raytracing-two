@@ -43,4 +43,8 @@ impl SizedLine {
             scale
         }
     }
+
+    pub fn length(&self) -> f64 {
+        self.line.vector.magnitude() * self.scale
+    }
 }
