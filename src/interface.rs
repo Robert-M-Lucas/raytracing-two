@@ -3,6 +3,8 @@ use std::time::Instant;
 
 use crate::maths::vectors::V3;
 use crate::rendering::{RenderConfig, Camera, self};
+use rand::rngs::ThreadRng;
+use rand::thread_rng;
 use sdl2::EventPump;
 use sdl2::render::Canvas;
 use sdl2::surface::Surface;
@@ -14,16 +16,18 @@ use sdl2::keyboard::Keycode;
 pub struct Interface 
 {
     render_config: RenderConfig,
-    camera: Camera
+    camera: Camera,
+    rng: ThreadRng
 }
 
 impl Interface {
     pub fn start(render_config: RenderConfig, camera: Camera) {
-        let mut this = Self { render_config, camera };
+        let mut this = Self { render_config, camera, rng: thread_rng() };
 
         let (mut canvas, mut event_pump) = Self::initialise_display(&this);
 
         let mut now = Instant::now();
+
 
         'running: loop {
             let delta_time = now.elapsed().as_secs_f64();
@@ -32,7 +36,7 @@ impl Interface {
             let exit = Self::handle_input(&mut this, &mut event_pump, delta_time);
             if exit { break 'running; }
             
-            let mut pixel_data = this.camera.get_image(&this.render_config, false, false);
+            let mut pixel_data = this.camera.get_image(&this.render_config, &mut this.rng, false, false);
     
             let surface = Surface::from_data(&mut pixel_data, 
                 this.render_config.resolution.0, 
@@ -105,7 +109,7 @@ impl Interface {
             Keycode::Right => { self.camera.rotation.0 -= 1.0 * delta_time; },
             Keycode::Down => { self.camera.rotation.1 -= 1.0 * delta_time; },
             Keycode::Up => { self.camera.rotation.1 += 1.0 * delta_time; },
-            Keycode::M => { rendering::take_screenshot(&self.camera, &self.render_config); },
+            Keycode::M => { rendering::take_screenshot(&self.camera, &self.render_config, &mut self.rng); },
             _ => {}
         }
         }

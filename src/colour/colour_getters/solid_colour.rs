@@ -1,7 +1,7 @@
 use super::{super::Colour, ColourGetter};
 
 pub struct SolidColour {
-    colour: Colour
+    pub colour: Colour
 }
 
 impl ColourGetter for SolidColour {

@@ -1,6 +1,4 @@
-use std::f64::consts::PI;
-
-use colour::{Colour, colour_getters::Texture};
+use colour::{Colour, colour_getters::{Texture, SolidColour}};
 use interface::Interface;
 use lights::{Light, DirectionalLight, PointLight};
 use maths::vectors::V3;
@@ -26,24 +24,76 @@ const _144P: (u32, u32) = (192, 144);
 
 fn main() {
     let scene_objects: Vec<Box<dyn Object>> = vec![
+        // Floor
         Box::new(Plane::new(
             &V3::new(0.0, 0.0, 0.0), 
             &(&V3::FORWARD * 5.0), 
             &(&V3::RIGHT * 5.0), 
             None, 
             Box::new(Texture::new("static\\textures\\prototype2.png").unwrap()),
-            SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false),
+            SurfaceType::new(0.0, 0.0, 0.0, 1.0, true, false),
         )),
-        Box::new(Sphere::new(V3::new(2.0, 1.0, 2.0), 1.0, Colour::from_f64(1.0, 1.0, 1.0), SurfaceType::new(1.0, 0.0, 0.0, 1.52, true, false))),
-        Box::new(Sphere::new(V3::new(-2.0, 1.0, -2.0), 1.0, Colour::from_f64(1.0, 0.0, 0.0), SurfaceType::new(1.0, 0.0, 0.0, 1.52, true, false))),
-        Box::new(Sphere::new(V3::new(-4.0, 1.0, -3.5), 1.0, Colour::from_f64(1.0, 1.0, 1.0), SurfaceType::new(1.0, 0.0, 0.0, 1.52, true, false))),
+        
+        // Mirror
+        Box::new(Plane::new(
+            &V3::new(7.0, 8.0, 0.0), &V3::new(1.0, 0.0, 1.0).normalised(), &V3::new(-1.0, 6.0, 1.0).normalised(), 
+            Some((-6.0, -4.0, 6.0, 4.0)), 
+            Box::new(SolidColour { colour: Colour::BLACK }),
+            SurfaceType::new(0.0, 0.7, 0.0, 1.54, true, false)
+        )),
+
+        // Spheres
+        Box::new(Sphere::new(V3::new(2.0 , 1.0, 0.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0 , 1.0, 4.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0 , 1.0, 2.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, 4.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0 , 1.0, 2.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, 0.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0 , 1.0, 0.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(0.0 , 1.0, 4.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, 2.0), 0.5, Colour::BLACK, SurfaceType::new(0.0, 0.8, 0.0, 1.52, false, false))),
+
+        Box::new(Sphere::new(V3::new(2.0 , 1.0, 0.0 + 6.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0 , 1.0, 4.0 + 6.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0 , 1.0, 2.0 + 6.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, 4.0 + 6.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0 , 1.0, 2.0 + 6.0), 0.5, Colour::WHITE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, 0.0 + 6.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0 , 1.0, 0.0 + 6.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(0.0 , 1.0, 4.0 + 6.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, 2.0 + 6.0), 0.5, Colour::BLACK, SurfaceType::new(0.0, 0.8, 0.0, 1.52, false, false))),
+
+        Box::new(Sphere::new(V3::new(2.0  + 6.0, 1.0, 0.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0  + 6.0, 1.0, 4.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0  + 6.0, 1.0, 2.0), 0.5, Colour::WHITE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0 + 6.0, 1.0, 4.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0  + 6.0, 1.0, 2.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0 + 6.0, 1.0, 0.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0  + 6.0, 1.0, 0.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(0.0  + 6.0, 1.0, 4.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(-2.0 + 6.0, 1.0, 2.0), 0.5, Colour::BLACK, SurfaceType::new(0.0, 0.8, 0.0, 1.52, false, false))),
+
+        Box::new(Sphere::new(V3::new(2.0  + 6.0, 1.0, 0.0 + 6.0), 0.5, Colour::WHITE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0  + 6.0, 1.0, 4.0 + 6.0), 0.5, Colour::RED, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(2.0  + 6.0, 1.0, 2.0 + 6.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0 + 6.0, 1.0, 4.0 + 6.0), 0.5, Colour::BLUE, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0  + 6.0, 1.0, 2.0 + 6.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0 + 6.0, 1.0, 0.0 + 6.0), 0.5, Colour::GREEN, SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false))),
+        Box::new(Sphere::new(V3::new(0.0  + 6.0, 1.0, 0.0 + 6.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(0.0  + 6.0, 1.0, 4.0 + 6.0), 0.5, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+        Box::new(Sphere::new(V3::new(-2.0 + 6.0, 1.0, 2.0 + 6.0), 0.5, Colour::BLACK, SurfaceType::new(0.0, 0.8, 0.0, 1.52, false, false))),
+
+        // Big Sphere
+        Box::new(Sphere::new(V3::new(3.0, 3.0, 5.0), 2.0, Colour::from_u8(44, 90, 100), SurfaceType::new(0.0, 0.0, 0.7, 1.52, false, false))),
+
+        // Light Sphere
         Box::new(Sphere::new(V3::new(1.5, 2.0, -1.5), 0.2, Colour::from_f64(1.0, 1.0, 0.0), SurfaceType::new(0.0, 0.0, 0.0, 1.52, false, true))),
     ];
 
     let scene_lights: Vec<Box<dyn Light>> = vec![
-        Box::new(DirectionalLight::new(&V3::new(1.0, -1.0, 1.0), &Colour::from_u8(255, 235, 200), 0.7)),
-        Box::new(DirectionalLight::new(&V3::new(0.0, -1.0, 0.0), &Colour::from_u8(205, 247, 247), 0.2)),
-        Box::new(PointLight::new(&V3::new(1.5, 2.0, -1.5), &Colour::from_f64(1.0, 1.0, 0.0), 20.0))
+        Box::new(DirectionalLight::new(&V3::new(1.0, -1.0, 1.0), &Colour::from_u8(255, 235, 200), 1.1)),
+        Box::new(DirectionalLight::new(&V3::new(0.0, -1.0, 0.0), &Colour::from_u8(205, 247, 247), 0.4)),
+        Box::new(PointLight::new(&V3::new(1.5, 2.0, -1.5), &Colour::from_f64(1.0, 1.0, 0.0), 100.0))
     ];
 
     let render_config: RenderConfig = RenderConfig { 
@@ -63,7 +113,7 @@ fn main() {
         enable_direct_lighting: true,
         screenshot_enable_direct_lighting: true,
         indirect_lighting_ray_count: 0, 
-        screenshot_indirect_lighting_ray_count: 0,
+        screenshot_indirect_lighting_ray_count: 250,
     };
 
     let camera = Camera::new(&V3::new(-5.0, 1.0, 0.0), (0.0, 0.0), 0.866);

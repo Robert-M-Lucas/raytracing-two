@@ -4,14 +4,15 @@ use std::{fs, f64::consts::PI};
 pub use camera::Camera;
 use chrono::{Datelike, Timelike};
 use image::{DynamicImage, ImageBuffer, Rgb};
-use rand::{thread_rng, Rng};
+use rand::{thread_rng, Rng, rngs::ThreadRng};
 use crate::{maths::{lines::Line, Intersection, vectors::V3}, colour::{Colour}, objects::Object};
 pub mod render_config;
 pub use render_config::RenderConfig;
 
-pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig) {
+pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig, rng: &mut ThreadRng) {
     println!("Rendering screenshot...");
-    let pixel_data = camera.get_image(render_config, true, true);
+    
+    let pixel_data = camera.get_image(render_config, rng, true, true);
     println!("Saving screenshot...");
     
     let img = DynamicImage::ImageRgb8(ImageBuffer::<Rgb<u8>, Vec<u8>>::from_raw(
@@ -35,27 +36,38 @@ pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig) {
     else { println!("Saved file to 'renders\\{}.png'", file_name); }
 }
 
-pub fn get_colour(ray: Line, render_config: &RenderConfig, is_screenshot: bool) -> Colour {
+pub fn get_colour(ray: Line, render_config: &RenderConfig, rng: &mut ThreadRng, is_screenshot: bool) -> Colour {
     let max_reflections;
     if is_screenshot { max_reflections = render_config.screenshot_max_reflection; }
     else { max_reflections = render_config.max_reflections; }
-    get_colour_recursively(ray, render_config, is_screenshot, max_reflections)
+    get_colour_recursively(ray, render_config, is_screenshot, max_reflections, rng)
 }
 
-fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize) -> Colour {
+fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize, rng: &mut ThreadRng) -> Colour {
     let normal = scene_object.get_normal(hit);
 
     let mut total_colour = Colour::BLACK;
 
-    let mut rng = thread_rng();
-
     'light_loop: for l in &render_config.scene_lights {
         let ray = l.get_direct_ray(&hit.position);
-        let angle_between = normal.angle_to(&ray.line.vector);
-        // TODO: Less sharp boundaries
-        if angle_between < PI / 2.0 + rng.gen_range(-0.1..0.1) && angle_between > - PI / 2.0  + rng.gen_range(-0.1..0.1) {
+        let angle_between = (normal.angle_to(&ray.line.vector) - PI).abs();
+
+        const SMOOTHING_REGION: f64 = 0.2;
+
+        let angle_multiplier;
+        if angle_between > PI / 2.0 {
             continue; // Light ray over 90d from hit normal
         }
+        // else if angle_between > (PI / 2.0) * (1.0 - SMOOTHING_REGION)   {
+        //     let theta = angle_between - ((PI / 2.0) * (1.0 - SMOOTHING_REGION));
+        //     angle_multiplier = (1.0 - (theta / ((PI / 2.0) * SMOOTHING_REGION)));
+        // }
+        // else {
+        //     angle_multiplier = 1.0;
+        // }
+
+        angle_multiplier = 1.0 - (angle_between / (PI / 2.0));
+
 
         for i in 0..render_config.scene_objects.len() {
             if i == hit_index || !render_config.scene_objects[i].get_surface_type().blocks_light { continue; }
@@ -67,24 +79,24 @@ fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_obje
             }
         }
 
-        total_colour = total_colour + (l.get_colour() * l.get_intensity(ray.length()));
+        total_colour = total_colour + (l.get_colour() * l.get_intensity(ray.length()) * angle_multiplier);
     }
 
     total_colour
 }
 
+#[allow(dead_code)]
 fn general_light_falloff(distance: f64) -> f64 {
     1.0 / (distance.powi(2) * 4.0 * PI)
 }
 
-fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize, ray_count: u32) -> Colour {
-    let mut rng = thread_rng();
+fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize, ray_count: u32, rng: &mut ThreadRng) -> Colour {
     let normal = scene_object.get_normal(hit);
 
     let mut total_colour = Colour::BLACK;
 
     for _ in 0..ray_count {
-        let ray = Line::new(&hit.position, &V3::get_random(&normal, 0.5 * PI, &mut rng));
+        let ray = Line::new(&hit.position, &V3::get_random(&normal, 0.5 * PI, rng));
 
         let mut closest_dist = f64::INFINITY;
         let mut closest_object = None;
@@ -115,8 +127,9 @@ fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_ob
 
         if surface_type.opaqueness == 0.0 || surface_type.diffusiveness == 0.0 { continue; }
 
+        // TODO: Light falloff between 'hit' and 'closest hit'
         let current_colour = 
-            get_direct_light(render_config, &closest_hit, &render_config.scene_objects[closest_hit_index.unwrap()], closest_hit_index.unwrap());
+            get_direct_light(render_config, &closest_hit, &render_config.scene_objects[closest_hit_index.unwrap()], closest_hit_index.unwrap(), rng);
 
         total_colour = total_colour + (closest_object.get_colour(&closest_hit) * current_colour * surface_type.diffusiveness * surface_type.opaqueness);
     }
@@ -125,7 +138,7 @@ fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_ob
 }
 
 fn get_colour_recursively(ray: Line, render_config: &RenderConfig, 
-    is_screenshot: bool, reflection_depth_remaining: u32) -> Colour {
+    is_screenshot: bool, reflection_depth_remaining: u32, rng: &mut ThreadRng) -> Colour {
     let mut closest_dist = f64::INFINITY;
     let mut closest_object = None;
     let mut closest_hit = None;
@@ -173,18 +186,18 @@ fn get_colour_recursively(ray: Line, render_config: &RenderConfig,
 
                 if (render_config.enable_direct_lighting && !is_screenshot) || 
                     (render_config.screenshot_enable_direct_lighting && is_screenshot) {
-                        light_colour = light_colour + get_direct_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap());
+                        light_colour = light_colour + get_direct_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), rng);
                 }
 
                 if object_surface_properties.diffusiveness != 0.0 {
                     if render_config.indirect_lighting_ray_count != 0 && !is_screenshot {
                         light_colour = light_colour + 
-                            (get_indirect_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), render_config.indirect_lighting_ray_count)
+                            (get_indirect_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), render_config.indirect_lighting_ray_count, rng)
                             * object_surface_properties.diffusiveness);
                     }
                     else if render_config.screenshot_indirect_lighting_ray_count != 0 && is_screenshot {
                         light_colour = light_colour + 
-                            (get_indirect_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), render_config.screenshot_indirect_lighting_ray_count)
+                            (get_indirect_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), render_config.screenshot_indirect_lighting_ray_count, rng)
                             * object_surface_properties.diffusiveness);
                     }
                 }
@@ -197,7 +210,8 @@ fn get_colour_recursively(ray: Line, render_config: &RenderConfig,
             (get_colour_recursively(scene_object.get_reflection_line(&ray, &closest_hit), 
                 render_config,
                 is_screenshot,
-                reflection_depth_remaining - 1
+                reflection_depth_remaining - 1,
+                rng
             ) * object_surface_properties.reflectiveness);
         }
         if object_surface_properties.transparency != 0.0 { 
@@ -206,7 +220,7 @@ fn get_colour_recursively(ray: Line, render_config: &RenderConfig,
                 render_config, 
                 is_screenshot,
                 reflection_depth_remaining - 1
-            ) * object_surface_properties.transparency);
+            , rng) * object_surface_properties.transparency);
         }
 
         new_colour

@@ -1,3 +1,5 @@
+use rand::rngs::ThreadRng;
+
 use crate::maths::{vectors::V3, lines::Line};
 
 use super::RenderConfig;
@@ -15,7 +17,7 @@ impl Camera {
         Self { position: position.clone(), rotation, fov }
     }
 
-    pub fn get_image(&self, render_config: &RenderConfig, is_screenshot: bool, verbose: bool) -> Vec<u8> {
+    pub fn get_image(&self, render_config: &RenderConfig, rng: &mut ThreadRng, is_screenshot: bool, verbose: bool) -> Vec<u8> {
         let resolution;
         if is_screenshot { resolution = render_config.screenshot_resolution }
         else { resolution = render_config.resolution; }
@@ -46,7 +48,7 @@ impl Camera {
                 let ray = Line::new(&self.position,
                     &ray_vector);
 
-                let colour = super::get_colour(ray, render_config, is_screenshot).as_u8();
+                let colour = super::get_colour(ray, render_config, rng, is_screenshot).as_u8();
         
                 data.push(colour.0);
                 data.push(colour.1);
