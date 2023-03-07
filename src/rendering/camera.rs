@@ -15,15 +15,25 @@ impl Camera {
         Self { position: position.clone(), rotation, fov }
     }
 
-    pub fn get_image(&self, render_config: &RenderConfig, is_screenshot: bool) -> Vec<u8> {
+    pub fn get_image(&self, render_config: &RenderConfig, is_screenshot: bool, verbose: bool) -> Vec<u8> {
         let resolution;
         if is_screenshot { resolution = render_config.screenshot_resolution }
         else { resolution = render_config.resolution; }
 
         let mut data = Vec::with_capacity((resolution.0 * resolution.1 * 3) as usize);
+        
+        let mut progress: u32 = 0;
+        let increment: u32 = (resolution.0 * resolution.1) / 100;
+
+        if verbose { println!("0%"); }
 
         for y in 0..resolution.1 {
             for x in 0..resolution.0 {
+                if verbose && ((resolution.0 * y + x) / increment) != progress {
+                    progress = (resolution.0 * y + x) / increment;
+                    println!("{}%", progress);
+                }
+
                 let ray_vector = (V3::FORWARD * self.fov) + 
                     V3::new(0.0, 
                         -(((y as i32) - ((resolution.1)/2) as i32) as f64) / ((resolution.1 as f64) / (2.0)), 

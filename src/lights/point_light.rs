@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use crate::{maths::{vectors::V3, lines::SizedLine}, colour::Colour};
 
 use super::Light;
@@ -25,6 +27,6 @@ impl Light for PointLight {
     }
 
     fn get_intensity(&self, distance: f64) -> f64 {
-        self.intensity / distance.powi(2)
+        self.intensity / (distance.powi(2) * 4.0 * PI)
     }
 }

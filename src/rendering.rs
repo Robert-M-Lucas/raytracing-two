@@ -4,13 +4,14 @@ use std::{fs, f64::consts::PI};
 pub use camera::Camera;
 use chrono::{Datelike, Timelike};
 use image::{DynamicImage, ImageBuffer, Rgb};
-use crate::{maths::{lines::Line, Intersection, vectors::V3}, colour::{Colour, self}, objects::Object};
+use rand::{thread_rng, Rng};
+use crate::{maths::{lines::Line, Intersection, vectors::V3}, colour::{Colour}, objects::Object};
 pub mod render_config;
 pub use render_config::RenderConfig;
 
 pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig) {
     println!("Rendering screenshot...");
-    let pixel_data = camera.get_image(render_config, true);
+    let pixel_data = camera.get_image(render_config, true, true);
     println!("Saving screenshot...");
     
     let img = DynamicImage::ImageRgb8(ImageBuffer::<Rgb<u8>, Vec<u8>>::from_raw(
@@ -46,10 +47,13 @@ fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_obje
 
     let mut total_colour = Colour::BLACK;
 
+    let mut rng = thread_rng();
+
     'light_loop: for l in &render_config.scene_lights {
         let ray = l.get_direct_ray(&hit.position);
         let angle_between = normal.angle_to(&ray.line.vector);
-        if angle_between < PI / 2.0 && angle_between > - PI / 2.0 {
+        // TODO: Less sharp boundaries
+        if angle_between < PI / 2.0 + rng.gen_range(-0.1..0.1) && angle_between > - PI / 2.0  + rng.gen_range(-0.1..0.1) {
             continue; // Light ray over 90d from hit normal
         }
 
@@ -67,6 +71,57 @@ fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_obje
     }
 
     total_colour
+}
+
+fn general_light_falloff(distance: f64) -> f64 {
+    1.0 / (distance.powi(2) * 4.0 * PI)
+}
+
+fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize, ray_count: u32) -> Colour {
+    let mut rng = thread_rng();
+    let normal = scene_object.get_normal(hit);
+
+    let mut total_colour = Colour::BLACK;
+
+    for _ in 0..ray_count {
+        let ray = Line::new(&hit.position, &V3::get_random(&normal, 0.5 * PI, &mut rng));
+
+        let mut closest_dist = f64::INFINITY;
+        let mut closest_object = None;
+        let mut closest_hit = None;
+        let mut closest_hit_index = None;
+
+        for i in 0..render_config.scene_objects.len() {
+            if i == hit_index || !render_config.scene_objects[i].get_surface_type().blocks_light { continue; }
+
+            match Intersection::closest_bounded(&render_config.scene_objects[i].get_intersections(&ray), 0.0, f64::INFINITY) {
+                None => {},
+                Some(hit) => {
+                    if hit.sized_line.scale <= closest_dist { 
+                        closest_dist = hit.sized_line.scale;
+                        closest_hit = Some(hit.clone());
+                        closest_object = Some(&render_config.scene_objects[i]);
+                        closest_hit_index = Some(i);
+                    }
+                }
+            }
+        }
+
+        if closest_hit.is_none() { continue; }
+
+        let closest_hit = closest_hit.unwrap();
+        let closest_object = closest_object.unwrap();
+        let surface_type = closest_object.get_surface_type();
+
+        if surface_type.opaqueness == 0.0 || surface_type.diffusiveness == 0.0 { continue; }
+
+        let current_colour = 
+            get_direct_light(render_config, &closest_hit, &render_config.scene_objects[closest_hit_index.unwrap()], closest_hit_index.unwrap());
+
+        total_colour = total_colour + (closest_object.get_colour(&closest_hit) * current_colour * surface_type.diffusiveness * surface_type.opaqueness);
+    }
+
+    total_colour / (ray_count as f64)
 }
 
 fn get_colour_recursively(ray: Line, render_config: &RenderConfig, 
@@ -114,12 +169,25 @@ fn get_colour_recursively(ray: Line, render_config: &RenderConfig,
 
             if !object_surface_properties.full_bright && ((!render_config.enable_full_bright && !is_screenshot) || 
                 (!render_config.screenshot_enable_full_bright && is_screenshot)) {
-                    light_colour = Colour::BLACK;
+                light_colour = Colour::BLACK;
 
-                    if (render_config.enable_direct_lighting && !is_screenshot) || 
-                        (render_config.screenshot_enable_direct_lighting && is_screenshot) {
-                            light_colour = light_colour + get_direct_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap());
+                if (render_config.enable_direct_lighting && !is_screenshot) || 
+                    (render_config.screenshot_enable_direct_lighting && is_screenshot) {
+                        light_colour = light_colour + get_direct_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap());
+                }
+
+                if object_surface_properties.diffusiveness != 0.0 {
+                    if render_config.indirect_lighting_ray_count != 0 && !is_screenshot {
+                        light_colour = light_colour + 
+                            (get_indirect_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), render_config.indirect_lighting_ray_count)
+                            * object_surface_properties.diffusiveness);
                     }
+                    else if render_config.screenshot_indirect_lighting_ray_count != 0 && is_screenshot {
+                        light_colour = light_colour + 
+                            (get_indirect_light(render_config, &closest_hit, scene_object, closest_hit_index.unwrap(), render_config.screenshot_indirect_lighting_ray_count)
+                            * object_surface_properties.diffusiveness);
+                    }
+                }
             }
 
             new_colour = (scene_object.get_colour(&closest_hit) * (light_colour + render_config.global_light)).proportionally_limited() * object_surface_properties.opaqueness;

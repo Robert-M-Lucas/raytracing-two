@@ -32,7 +32,7 @@ impl Interface {
             let exit = Self::handle_input(&mut this, &mut event_pump, delta_time);
             if exit { break 'running; }
             
-            let mut pixel_data = this.camera.get_image(&this.render_config, false);
+            let mut pixel_data = this.camera.get_image(&this.render_config, false, false);
     
             let surface = Surface::from_data(&mut pixel_data, 
                 this.render_config.resolution.0, 

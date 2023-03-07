@@ -1,5 +1,4 @@
 use std::ops;
-use std::cmp;
 
 pub mod colour_getters;
 
@@ -88,6 +87,22 @@ impl ops::Mul<f64> for &Colour {
 
     fn mul(self, rhs: f64) -> Colour {
         Colour::from_f64(self.r * rhs, self.g * rhs, self.b * rhs)
+    }
+}
+
+impl ops::Div<f64> for Colour {
+    type Output = Colour;
+
+    fn div(self, rhs: f64) -> Colour {
+        Colour::from_f64(self.r / rhs, self.g / rhs, self.b / rhs)
+    }
+}
+
+impl ops::Div<f64> for &Colour {
+    type Output = Colour;
+
+    fn div(self, rhs: f64) -> Colour {
+        Colour::from_f64(self.r / rhs, self.g / rhs, self.b / rhs)
     }
 }
 

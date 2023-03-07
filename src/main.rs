@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use colour::{Colour, colour_getters::Texture};
 use interface::Interface;
 use lights::{Light, DirectionalLight, PointLight};
@@ -30,17 +32,18 @@ fn main() {
             &(&V3::RIGHT * 5.0), 
             None, 
             Box::new(Texture::new("static\\textures\\prototype2.png").unwrap()),
-            SurfaceType::new(0.0, 0.0, 1.0, true, false),
+            SurfaceType::new(1.0, 0.0, 0.0, 1.0, true, false),
         )),
-        Box::new(Sphere::new(V3::new(2.0, 1.0, 2.0), 1.0, Colour::from_f64(1.0, 1.0, 1.0), SurfaceType::new(0.0, 0.0, 1.52, true, false))),
-        Box::new(Sphere::new(V3::new(-2.0, 1.0, -2.0), 1.0, Colour::from_f64(1.0, 1.0, 1.0), SurfaceType::new(0.0, 0.0, 1.52, true, false))),
-        Box::new(Sphere::new(V3::new(1.5, 2.0, -1.5), 0.2, Colour::from_f64(1.0, 1.0, 0.0), SurfaceType::new(0.0, 0.0, 1.52, false, true))),
+        Box::new(Sphere::new(V3::new(2.0, 1.0, 2.0), 1.0, Colour::from_f64(1.0, 1.0, 1.0), SurfaceType::new(1.0, 0.0, 0.0, 1.52, true, false))),
+        Box::new(Sphere::new(V3::new(-2.0, 1.0, -2.0), 1.0, Colour::from_f64(1.0, 0.0, 0.0), SurfaceType::new(1.0, 0.0, 0.0, 1.52, true, false))),
+        Box::new(Sphere::new(V3::new(-4.0, 1.0, -3.5), 1.0, Colour::from_f64(1.0, 1.0, 1.0), SurfaceType::new(1.0, 0.0, 0.0, 1.52, true, false))),
+        Box::new(Sphere::new(V3::new(1.5, 2.0, -1.5), 0.2, Colour::from_f64(1.0, 1.0, 0.0), SurfaceType::new(0.0, 0.0, 0.0, 1.52, false, true))),
     ];
 
     let scene_lights: Vec<Box<dyn Light>> = vec![
         Box::new(DirectionalLight::new(&V3::new(1.0, -1.0, 1.0), &Colour::from_u8(255, 235, 200), 0.7)),
         Box::new(DirectionalLight::new(&V3::new(0.0, -1.0, 0.0), &Colour::from_u8(205, 247, 247), 0.2)),
-        Box::new(PointLight::new(&V3::new(1.5, 2.0, -1.5), &Colour::from_f64(1.0, 1.0, 0.0), 10.0))
+        Box::new(PointLight::new(&V3::new(1.5, 2.0, -1.5), &Colour::from_f64(1.0, 1.0, 0.0), 20.0))
     ];
 
     let render_config: RenderConfig = RenderConfig { 
@@ -48,18 +51,19 @@ fn main() {
         screenshot_resolution: _4K, 
         max_reflections: 2, 
         screenshot_max_reflection: 10, 
+        // diffusive_constant: 1.0 / (4.0 * PI * 10.0),
         sky_height: 1000.0, 
         sky_scale: 5000.0, 
         sky_texture: Box::new(Texture::new("static\\textures\\sky_prototype.png").unwrap()), 
-        global_light: Colour::from_f64(0.2, 0.2, 0.2),
+        global_light: Colour::BLACK, // Colour::from_f64(0.2, 0.2, 0.2),
         scene_objects: scene_objects,
         scene_lights: scene_lights,
         enable_full_bright: false,
         screenshot_enable_full_bright: false,
         enable_direct_lighting: true,
         screenshot_enable_direct_lighting: true,
-        enable_indirect_lighting: false, 
-        screenshot_enable_indirect_lighting: true,
+        indirect_lighting_ray_count: 0, 
+        screenshot_indirect_lighting_ray_count: 0,
     };
 
     let camera = Camera::new(&V3::new(-5.0, 1.0, 0.0), (0.0, 0.0), 0.866);

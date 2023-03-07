@@ -1,5 +1,8 @@
+use std::f64::consts::PI;
 use std::ops;
 use std::cmp;
+use rand::Rng;
+use rand::rngs::ThreadRng;
 
 #[derive(Debug, Clone, Copy)]
 #[allow(dead_code)]
@@ -72,6 +75,23 @@ impl V3 {
     pub fn reflected(&self, normal: &V3) -> V3 {
         let n = normal.normalised();
         self.clone() - (n * (2.0 * (self.dot(&n))))
+    }
+
+    pub fn get_random(direction: &V3, spread: f64, rng: &mut ThreadRng) -> V3 {
+        let b3 = direction.normalised();
+        let different;
+        if b3.x < 0.5 { different = V3::new(1.0, 0.0, 0.0); }
+        else { different = V3::new(0.0, 1.0, 0.0); }
+        let b1 = b3.cross(&different).normalised();
+        let b2 = b1.cross(&b3).normalised();
+
+        let z = rng.gen_range(spread.cos()..1.0);
+        let r = (1.0 - (z * z)).sqrt();
+        let theta = rng.gen_range(-PI..PI);
+        let x = r * theta.cos();
+        let y = r * theta.sin();
+
+        (b1 * x) + (b2 * y) + (b3 * z)
     }
 
     #[allow(non_snake_case)]
