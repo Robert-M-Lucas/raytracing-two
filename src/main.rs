@@ -23,7 +23,7 @@ const _240P: (u32, u32) = (320, 240);
 const _144P: (u32, u32) = (192, 144);
 
 fn main() {
-    let scene_objects: Vec<Box<dyn Object>> = vec![
+    let scene_objects: Vec<Box<dyn Object + Sync>> = vec![
         // Floor
         Box::new(Plane::new(
             &V3::new(0.0, 0.0, 0.0), 
@@ -90,7 +90,7 @@ fn main() {
         Box::new(Sphere::new(V3::new(1.5, 2.0, -1.5), 0.2, Colour::from_f64(1.0, 1.0, 0.0), SurfaceType::new(0.0, 0.0, 0.0, 1.52, false, true))),
     ];
 
-    let scene_lights: Vec<Box<dyn Light>> = vec![
+    let scene_lights: Vec<Box<dyn Light + Sync>> = vec![
         Box::new(DirectionalLight::new(&V3::new(1.0, -1.0, 1.0), &Colour::from_u8(255, 235, 200), 1.1)),
         Box::new(DirectionalLight::new(&V3::new(0.0, -1.0, 0.0), &Colour::from_u8(205, 247, 247), 0.4)),
         Box::new(PointLight::new(&V3::new(1.5, 2.0, -1.5), &Colour::from_f64(1.0, 1.0, 0.0), 100.0))

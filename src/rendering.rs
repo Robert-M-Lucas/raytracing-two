@@ -43,7 +43,7 @@ pub fn get_colour(ray: Line, render_config: &RenderConfig, rng: &mut ThreadRng, 
     get_colour_recursively(ray, render_config, is_screenshot, max_reflections, rng)
 }
 
-fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize, rng: &mut ThreadRng) -> Colour {
+fn get_direct_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object + Sync>, hit_index: usize, rng: &mut ThreadRng) -> Colour {
     let normal = scene_object.get_normal(hit);
 
     let mut total_colour = Colour::BLACK;
@@ -90,7 +90,7 @@ fn general_light_falloff(distance: f64) -> f64 {
     1.0 / (distance.powi(2) * 4.0 * PI)
 }
 
-fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object>, hit_index: usize, ray_count: u32, rng: &mut ThreadRng) -> Colour {
+fn get_indirect_light(render_config: &RenderConfig, hit: &Intersection, scene_object: &Box<dyn Object + Sync>, hit_index: usize, ray_count: u32, rng: &mut ThreadRng) -> Colour {
     let normal = scene_object.get_normal(hit);
 
     let mut total_colour = Colour::BLACK;

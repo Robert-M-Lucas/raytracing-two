@@ -12,14 +12,14 @@ pub struct Plane {
     pub vector_one: V3,
     pub vector_two: V3,
     pub limits: Option<(f64, f64, f64, f64)>, // x-min, y-min, x-max, y-max
-    colour_getter: Box<dyn ColourGetter>,
+    colour_getter: Box<dyn ColourGetter + Sync>,
     surface_type: SurfaceType,
     cached_sol: f64
 }
 
 #[allow(dead_code)]
 impl Plane {
-    pub fn new(point: &V3, vector_one: &V3, vector_two: &V3, limits: Option<(f64, f64, f64, f64)>, colour_getter: Box<dyn ColourGetter>, surface_type: SurfaceType) -> Self {
+    pub fn new(point: &V3, vector_one: &V3, vector_two: &V3, limits: Option<(f64, f64, f64, f64)>, colour_getter: Box<dyn ColourGetter + Sync>, surface_type: SurfaceType) -> Self {
         Self {
             point: point.clone(),
             vector_one: vector_one.clone(),
