@@ -21,9 +21,9 @@ impl Camera {
     }
 
     pub fn get_image_threaded(&self, render_config: &RenderConfig, is_screenshot: bool) -> Vec<u8> {
-        let mut data: Vec<u8> = vec![0; (render_config.resolution.0 * render_config.resolution.1 * 3) as usize];
+        let mut data: Vec<u8> = vec![0; (render_config.screenshot_resolution.0 * render_config.screenshot_resolution.1 * 3) as usize];
         
-        let chunks = data.chunks_mut(((render_config.resolution.0 * render_config.resolution.1 * 3) / 12) as usize);
+        let chunks = data.chunks_mut((render_config.resolution.0 * render_config.resolution.1 * 3) as usize / num_cpus::get());
 
         // let mut offset = 0;
         // for chunk in chunks {
@@ -35,11 +35,13 @@ impl Camera {
             let mut ts = Vec::with_capacity(chunks.len());
 
             let mut offset = 0;
+            let mut i: u32 = 0;
             for chunk in chunks {
                 let o = offset;
-                let len = chunk.len();
-                ts.push(scope.spawn(move || { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, o); }));
+                let len = chunk.len() / 3;
+                ts.push(scope.spawn(move || { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, o, i); }));
                 offset += len;
+                i += 1;
             }
 
             for t in ts {
@@ -50,14 +52,23 @@ impl Camera {
         data
     }
 
-    pub fn get_image_sub_threaded(cam: Camera, render_config: &RenderConfig, is_screenshot: bool, chunk: &mut [u8], offset: usize) {
+    pub fn get_image_sub_threaded(cam: Camera, render_config: &RenderConfig, is_screenshot: bool, chunk: &mut [u8], offset: usize, thread_id: u32) {
         let resolution;
         if is_screenshot { resolution = render_config.screenshot_resolution }
         else { resolution = render_config.resolution; }
 
         let mut rng = thread_rng();
 
+        println!("Thread[{}] start", thread_id);
+        let mut progress: usize = 0;
+        let increment: usize = (resolution.0 * resolution.1) as usize / 100;
+
         for i in 0..(chunk.len() / 3) {
+            if (i / increment) != progress {
+                progress = i / increment;
+                println!("Thread[{}]: {}%", thread_id, progress);
+            }
+
             let x = (i + offset) % resolution.0 as usize;
             let y = (i + offset) / resolution.0 as usize;
 

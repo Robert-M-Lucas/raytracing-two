@@ -1,5 +1,5 @@
 pub mod camera;
-use std::{fs, f64::consts::PI};
+use std::{fs, f64::consts::PI, time::Instant};
 
 pub use camera::Camera;
 use chrono::{Datelike, Timelike};
@@ -12,8 +12,18 @@ pub use render_config::RenderConfig;
 pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig, _rng: &mut ThreadRng) {
     println!("Rendering screenshot...");
     
+    // let start = Instant::now();
     let pixel_data = camera.get_image_threaded(render_config, true);
+    // let time = start.elapsed();
+
+    // let start2 = Instant::now();
+    // let pixel_data = camera.get_image(render_config, rng, true, false);
+    // let time2 = start2.elapsed();
+    // println!("{:?} unthreaded | {:?} threaded", time2, time);
+
     println!("Saving screenshot...");
+
+    println!("{}", pixel_data[100]);
     
     let img = DynamicImage::ImageRgb8(ImageBuffer::<Rgb<u8>, Vec<u8>>::from_raw(
         render_config.screenshot_resolution.0, 

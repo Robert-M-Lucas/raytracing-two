@@ -37,6 +37,7 @@ impl Interface {
             if exit { break 'running; }
             
             let mut pixel_data = this.camera.get_image(&this.render_config, &mut this.rng, false, false);
+            // let mut pixel_data = this.camera.get_image_threaded(&this.render_config, false);
     
             let surface = Surface::from_data(&mut pixel_data, 
                 this.render_config.resolution.0, 
