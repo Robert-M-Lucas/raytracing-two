@@ -20,23 +20,32 @@ impl Camera {
         Self { position: position.clone(), rotation, fov }
     }
 
-/*
     pub fn get_image_threaded(&self, render_config: &RenderConfig, is_screenshot: bool) -> Vec<u8> {
         let mut data: Vec<u8> = vec![0; (render_config.resolution.0 * render_config.resolution.1 * 3) as usize];
         
         let chunks = data.chunks_mut(((render_config.resolution.0 * render_config.resolution.1 * 3) / 12) as usize);
 
-        let mut ts = Vec::with_capacity(chunks.len());
+        // let mut offset = 0;
+        // for chunk in chunks {
+        //     ts.push(thread::scope(|scope| { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, offset); }));
+        //     offset += chunk.len();
+        // }
 
-        let mut offset = 0;
-        for chunk in chunks {
-            ts.push(thread::spawn(|| { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, offset); }));
-            offset += chunk.len();
-        }
+        thread::scope(|scope| {
+            let mut ts = Vec::with_capacity(chunks.len());
 
-        for t in ts {
-            t.join();
-        }
+            let mut offset = 0;
+            for chunk in chunks {
+                let o = offset;
+                let len = chunk.len();
+                ts.push(scope.spawn(move || { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, o); }));
+                offset += len;
+            }
+
+            for t in ts {
+                t.join().unwrap();
+            }
+        });
 
         data
     }
@@ -73,7 +82,6 @@ impl Camera {
 
         // data
     }
-*/
 
     pub fn get_image(&self, render_config: &RenderConfig, rng: &mut ThreadRng, is_screenshot: bool, verbose: bool) -> Vec<u8> {
         let resolution;

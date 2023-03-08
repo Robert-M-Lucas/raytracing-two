@@ -9,10 +9,10 @@ use crate::{maths::{lines::Line, Intersection, vectors::V3}, colour::{Colour}, o
 pub mod render_config;
 pub use render_config::RenderConfig;
 
-pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig, rng: &mut ThreadRng) {
+pub fn take_screenshot(camera: &Camera, render_config: &RenderConfig, _rng: &mut ThreadRng) {
     println!("Rendering screenshot...");
     
-    let pixel_data = camera.get_image(render_config, rng, true, true);
+    let pixel_data = camera.get_image_threaded(render_config, true);
     println!("Saving screenshot...");
     
     let img = DynamicImage::ImageRgb8(ImageBuffer::<Rgb<u8>, Vec<u8>>::from_raw(
