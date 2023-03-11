@@ -86,8 +86,7 @@ impl Interface {
 
         let keys = keyboard_state.pressed_scancodes().filter_map(Keycode::from_scancode);
 
-        for k in keys {
-        match k {
+        for k in keys { match k {
             Keycode::W => { self.camera.position = &self.camera.position +
                 &(&V3::FORWARD.rotate_y(&V3::ZERO, self.camera.rotation.0) * (delta_time * 20.0));
             },
@@ -100,16 +99,30 @@ impl Interface {
             Keycode::D => { self.camera.position = &self.camera.position +
                 &(&V3::RIGHT.rotate_y(&V3::ZERO, self.camera.rotation.0) * (delta_time * 20.0));
             },
-            Keycode::Q | Keycode::Space => { self.camera.position = &self.camera.position +
+            Keycode::Space => { self.camera.position = &self.camera.position +
                 &(&V3::UP * (delta_time * 20.0));
             },
-            Keycode::E | Keycode::C | Keycode::LCtrl => { self.camera.position = &self.camera.position +
+            Keycode::C | Keycode::LCtrl => { self.camera.position = &self.camera.position +
                 &(&V3::DOWN * (delta_time * 20.0));
             },
-            Keycode::Left => { self.camera.rotation.0 += 1.0 * delta_time; },
-            Keycode::Right => { self.camera.rotation.0 -= 1.0 * delta_time; },
-            Keycode::Down => { self.camera.rotation.1 -= 1.0 * delta_time; },
-            Keycode::Up => { self.camera.rotation.1 += 1.0 * delta_time; },
+            Keycode::Q => { self.camera.position = &self.camera.position +
+                &(&V3::UP * (delta_time * 1.0));
+            },
+            Keycode::E => { self.camera.position = &self.camera.position +
+                &(&V3::DOWN * (delta_time * 1.0));
+            },
+            Keycode::Up => { self.camera.position = &self.camera.position +
+                &(&V3::FORWARD.rotate_y(&V3::ZERO, self.camera.rotation.0) * (delta_time * 1.0));
+            },
+            Keycode::Left => { self.camera.position = &self.camera.position +
+                &(&V3::LEFT.rotate_y(&V3::ZERO, self.camera.rotation.0) * (delta_time * 1.0));
+            },
+            Keycode::Down => { self.camera.position = &self.camera.position +
+                &(&V3::BACK.rotate_y(&V3::ZERO, self.camera.rotation.0) * (delta_time * 1.0));
+            },
+            Keycode::Right => { self.camera.position = &self.camera.position +
+                &(&V3::RIGHT.rotate_y(&V3::ZERO, self.camera.rotation.0) * (delta_time * 1.0));
+            },
             Keycode::M => { rendering::take_screenshot(&self.camera, &self.render_config, &mut self.rng); },
             _ => {}
         }

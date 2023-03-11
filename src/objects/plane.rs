@@ -26,7 +26,7 @@ impl Plane {
             vector_two: vector_two.clone(),
             limits,
             colour_getter,
-            surface_type: surface_type,
+            surface_type,
             cached_sol: f64::NAN
         }
     }

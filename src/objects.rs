@@ -11,7 +11,7 @@ use crate::maths::vectors::V3;
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 pub struct SurfaceType {
-    pub diffusiveness: f64,
+    pub diffuseness: f64,
     pub reflectiveness: f64,
     pub transparency: f64,
     pub refractive_index: f64,
@@ -23,7 +23,7 @@ pub struct SurfaceType {
 #[allow(dead_code)]
 impl SurfaceType {
     pub fn new(diffusiveness: f64, reflectiveness: f64, transparency: f64, refractive_index: f64, blocks_light: bool, full_bright: bool) -> Self {
-        Self { diffusiveness, reflectiveness, transparency, refractive_index, opaqueness: 1.0 - transparency - reflectiveness, blocks_light, full_bright }
+        Self { diffuseness: diffusiveness, reflectiveness, transparency, refractive_index, opaqueness: 1.0 - transparency - reflectiveness, blocks_light, full_bright }
     }
 }
 

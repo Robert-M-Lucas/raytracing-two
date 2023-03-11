@@ -35,7 +35,7 @@ impl Texture {
 
         Ok(Self {
             size: dimensions,
-            data: data,
+            data,
         })
     }
 }

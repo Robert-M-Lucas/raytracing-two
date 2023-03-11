@@ -1,6 +1,5 @@
 use std::f64::consts::PI;
 use std::ops;
-use std::cmp;
 use rand::Rng;
 use rand::rngs::ThreadRng;
 
@@ -273,10 +272,10 @@ impl ops::Div<f64> for &V3 {
     }
 }
 
-impl cmp::PartialEq<V3> for V3 {
+impl PartialEq<V3> for V3 {
     fn eq(&self, rhs: &V3) -> bool {
         self.x == rhs.x && self.y == rhs.y && self.z == rhs.z
     }
 }
 
-impl cmp::Eq for V3 {}
+impl Eq for V3 {}

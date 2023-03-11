@@ -1,4 +1,4 @@
-use std::{thread::{Thread, self}, sync::Arc};
+use std::thread;
 
 use rand::{rngs::ThreadRng, thread_rng};
 
@@ -20,14 +20,17 @@ impl Camera {
         Self { position: position.clone(), rotation, fov }
     }
 
-    pub fn get_image_threaded(&self, render_config: &RenderConfig, is_screenshot: bool) -> Vec<u8> {
+    pub fn get_image_threaded(&self, render_config: &RenderConfig) -> Vec<u8> {
         let mut data: Vec<u8> = vec![0; (render_config.screenshot_resolution.0 * render_config.screenshot_resolution.1 * 3) as usize];
-        
-        let chunks = data.chunks_mut((render_config.resolution.0 * render_config.resolution.1 * 3) as usize / num_cpus::get());
+
+        // T1: 754.2866773s
+        // T2: 626.2710919s
+        let chunks = data.chunks_mut(((render_config.screenshot_resolution.0 * render_config.screenshot_resolution.1 * 3) as usize) / (num_cpus::get() * 4));
+        println!("CPUs available: {}, Threads: {}", num_cpus::get(), chunks.len());
 
         // let mut offset = 0;
         // for chunk in chunks {
-        //     ts.push(thread::scope(|scope| { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, offset); }));
+        //     ts.push(thread::spawn(|| { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, offset); }));
         //     offset += chunk.len();
         // }
 
@@ -39,7 +42,7 @@ impl Camera {
             for chunk in chunks {
                 let o = offset;
                 let len = chunk.len() / 3;
-                ts.push(scope.spawn(move || { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, o, i); }));
+                ts.push(scope.spawn(move || { Self::get_image_sub_threaded(self.clone(), render_config.clone(), true, chunk, o, i); }));
                 offset += len;
                 i += 1;
             }
@@ -52,6 +55,7 @@ impl Camera {
         data
     }
 
+    //noinspection DuplicatedCode
     pub fn get_image_sub_threaded(cam: Camera, render_config: &RenderConfig, is_screenshot: bool, chunk: &mut [u8], offset: usize, thread_id: u32) {
         let resolution;
         if is_screenshot { resolution = render_config.screenshot_resolution }
@@ -61,12 +65,12 @@ impl Camera {
 
         println!("Thread[{}] start", thread_id);
         let mut progress: usize = 0;
-        let increment: usize = (resolution.0 * resolution.1) as usize / 100;
+        let increment: usize = (chunk.len() / 3) as usize / 10;
 
         for i in 0..(chunk.len() / 3) {
             if (i / increment) != progress {
                 progress = i / increment;
-                println!("Thread[{}]: {}%", thread_id, progress);
+                println!("Thread[{}]: {}%", thread_id, progress * 10);
             }
 
             let x = (i + offset) % resolution.0 as usize;
@@ -90,6 +94,8 @@ impl Camera {
             chunk[i*3 + 1] = colour.1;
             chunk[i*3 + 2] = colour.2;
         }
+
+        println!("Thread[{}] complete", thread_id)
 
         // data
     }

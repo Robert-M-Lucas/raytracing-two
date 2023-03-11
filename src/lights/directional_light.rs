@@ -17,15 +17,15 @@ impl DirectionalLight {
 }
 
 impl Light for DirectionalLight {
-    fn get_colour(&self) -> &Colour {
-        &self.colour
-    }
-
     fn get_direct_ray(&self, destination: &V3) -> SizedLine {
         SizedLine::new(&(destination - (self.direction * INFINITY)), &self.direction, INFINITY)
     }
 
     fn get_intensity(&self, _distance: f64) -> f64 {
         self.intensity
+    }
+
+    fn get_colour(&self) -> &Colour {
+        &self.colour
     }
 }
