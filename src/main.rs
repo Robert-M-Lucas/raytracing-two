@@ -109,7 +109,7 @@ fn main() {
 
     let render_config: RenderConfig = RenderConfig { 
         resolution: _240P, 
-        screenshot_resolution: _16K,
+        screenshot_resolution: _1080P,
         max_reflections: 2, 
         screenshot_max_reflection: 10, 
         // diffusive_constant: 1.0 / (4.0 * PI * 10.0),

@@ -4,14 +4,12 @@ use rand::Rng;
 use rand::rngs::ThreadRng;
 
 #[derive(Debug, Clone, Copy)]
-#[allow(dead_code)]
 pub struct V3 {
     pub x: f64,
     pub y: f64,
     pub z: f64
 }
 
-#[allow(dead_code)]
 impl V3 {
 
     pub fn new(x: f64, y: f64, z: f64) -> Self {
@@ -32,7 +30,7 @@ impl V3 {
     pub fn dot(&self, rhs: &V3) -> f64 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
-
+    
     pub fn cross(&self, rhs: &V3) -> V3 {
         V3::new(
             self.y * rhs.z - self.z * rhs.y,

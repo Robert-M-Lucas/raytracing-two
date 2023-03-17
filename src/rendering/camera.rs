@@ -25,14 +25,11 @@ impl Camera {
 
         // T1: 754.2866773s
         // T2: 626.2710919s
-        let chunks = data.chunks_mut(((render_config.screenshot_resolution.0 * render_config.screenshot_resolution.1 * 3) as usize) / (num_cpus::get() * 4));
+        let chunks = data.chunks_mut(
+            ((render_config.screenshot_resolution.0 * render_config.screenshot_resolution.1 * 3) as usize) / 
+            (num_cpus::get() * 4)
+        );
         println!("CPUs available: {}, Threads: {}", num_cpus::get(), chunks.len());
-
-        // let mut offset = 0;
-        // for chunk in chunks {
-        //     ts.push(thread::spawn(|| { Self::get_image_sub_threaded(self.clone(), render_config.clone(), is_screenshot, chunk, offset); }));
-        //     offset += chunk.len();
-        // }
 
         thread::scope(|scope| {
             let mut ts = Vec::with_capacity(chunks.len());
@@ -42,7 +39,9 @@ impl Camera {
             for chunk in chunks {
                 let o = offset;
                 let len = chunk.len() / 3;
-                ts.push(scope.spawn(move || { Self::get_image_sub_threaded(self.clone(), render_config.clone(), true, chunk, o, i); }));
+                ts.push(scope.spawn(move || { 
+                    Self::get_image_sub_threaded(self.clone(), render_config.clone(), true, chunk, o, i); 
+                }));
                 offset += len;
                 i += 1;
             }
@@ -78,8 +77,10 @@ impl Camera {
 
             let ray_vector = (V3::FORWARD * cam.fov) + 
                 V3::new(0.0, 
-                    -(((y as i32) - ((resolution.1)/2) as i32) as f64) / ((resolution.1 as f64) / (2.0)), 
-                    (((x as i32) - ((resolution.0)/2) as i32) as f64) / ((resolution.0 as f64) / ((resolution.0 as f64 / resolution.1 as f64) * 2.0))
+                    -(((y as i32) - ((resolution.1)/2) as i32) as f64) / 
+                        ((resolution.1 as f64) / (2.0)), 
+                    (((x as i32) - ((resolution.0)/2) as i32) as f64) / 
+                        ((resolution.0 as f64) / ((resolution.0 as f64 / resolution.1 as f64) * 2.0))
                 );
 
             let ray_vector = ray_vector.rotate_z(&V3::ZERO, cam.rotation.1);
@@ -121,15 +122,16 @@ impl Camera {
 
                 let ray_vector = (V3::FORWARD * self.fov) + 
                     V3::new(0.0, 
-                        -(((y as i32) - ((resolution.1)/2) as i32) as f64) / ((resolution.1 as f64) / (2.0)), 
-                        (((x as i32) - ((resolution.0)/2) as i32) as f64) / ((resolution.0 as f64) / ((resolution.0 as f64 / resolution.1 as f64) * 2.0))
+                        -(((y as i32) - ((resolution.1)/2) as i32) as f64) / 
+                            ((resolution.1 as f64) / (2.0)), 
+                        (((x as i32) - ((resolution.0)/2) as i32) as f64) / 
+                            ((resolution.0 as f64) / ((resolution.0 as f64 / resolution.1 as f64) * 2.0))
                     );
 
                 let ray_vector = ray_vector.rotate_z(&V3::ZERO, self.rotation.1);
                 let ray_vector = ray_vector.rotate_y(&V3::ZERO, self.rotation.0);
 
-                let ray = Line::new(&self.position,
-                    &ray_vector);
+                let ray = Line::new(&self.position, &ray_vector);
 
                 let colour = super::get_colour(ray, render_config, rng, is_screenshot).as_u8();
         
