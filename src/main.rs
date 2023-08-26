@@ -31,7 +31,7 @@ fn main() {
             &(&V3::FORWARD * 5.0), 
             &(&V3::RIGHT * 5.0), 
             None, 
-            Box::new(Texture::new("static\\textures\\prototype2.png").unwrap()),
+            Box::new(Texture::new("static/textures/prototype2.png").unwrap()),
             SurfaceType::new(0.0, 0.0, 0.0, 1.0, true, false),
         )),
         
@@ -115,7 +115,7 @@ fn main() {
         // diffusive_constant: 1.0 / (4.0 * PI * 10.0),
         sky_height: 1000.0, 
         sky_scale: 5000.0, 
-        sky_texture: Box::new(Texture::new("static\\textures\\sky_prototype.png").unwrap()), 
+        sky_texture: Box::new(Texture::new("static/textures/sky_prototype.png").unwrap()),
         global_light: Colour::BLACK, // Colour::from_f64(0.2, 0.2, 0.2),
         scene_objects,
         scene_lights,
