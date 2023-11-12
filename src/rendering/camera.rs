@@ -1,6 +1,11 @@
+use std::cell::RefCell;
+use std::sync::{Arc, Mutex};
 use std::thread;
+use std::time::Instant;
 
 use rand::{rngs::ThreadRng, thread_rng};
+use rayon::prelude::*;
+use thread_local::ThreadLocal;
 
 use crate::maths::{vectors::V3, lines::Line};
 
@@ -20,7 +25,7 @@ impl Camera {
         Self { position: position.clone(), rotation, fov }
     }
 
-    pub fn get_image_threaded(&self, render_config: &RenderConfig) -> Vec<u8> {
+    pub fn get_image_threaded_old(&self, render_config: &RenderConfig) -> Vec<u8> {
         let mut data: Vec<u8> = vec![0; (render_config.screenshot_resolution.0 * render_config.screenshot_resolution.1 * 3) as usize];
 
         // T1: 754.2866773s
@@ -52,6 +57,68 @@ impl Camera {
         });
 
         data
+    }
+
+    pub fn get_image_threaded(&self, render_config: &RenderConfig) -> Vec<u8> {
+        let resolution;
+        let is_screenshot = true;
+        if is_screenshot { resolution = render_config.screenshot_resolution }
+        else { resolution = render_config.resolution; }
+
+        thread_local!(static STORE: RefCell<Option<ThreadRng>> = RefCell::new(None));
+
+        const PIXEL_GROUP: usize = 100;
+
+        let data: Vec<Vec<(u8, u8, u8)>> = (0..(resolution.0 * resolution.1)).into_par_iter().chunks(PIXEL_GROUP).map(
+            |is| {
+
+            STORE.with(|cell| {
+                let mut local_store = cell.borrow_mut();
+                if local_store.is_none() {
+                    *local_store = Some(thread_rng());
+                }
+
+                let rng = local_store.as_mut().unwrap();
+
+                let mut result = Vec::with_capacity(PIXEL_GROUP);
+                for i in is {
+                    let x = i % resolution.0;
+                    let y = i / resolution.0;
+
+                    let ray_vector = (V3::FORWARD * self.fov) +
+                        V3::new(0.0,
+                                -(((y as i32) - ((resolution.1) / 2) as i32) as f64) /
+                                    ((resolution.1 as f64) / (2.0)),
+                                (((x as i32) - ((resolution.0) / 2) as i32) as f64) /
+                                    ((resolution.0 as f64) / ((resolution.0 as f64 / resolution.1 as f64) * 2.0))
+                        );
+
+                    let ray_vector = ray_vector.rotate_z(&V3::ZERO, self.rotation.1);
+                    let ray_vector = ray_vector.rotate_y(&V3::ZERO, self.rotation.0);
+
+                    let ray = Line::new(&self.position, &ray_vector);
+
+                    let colour = super::get_colour(ray, render_config, rng, is_screenshot).as_u8();
+
+                    result.push((colour.0, colour.1, colour.2));
+                }
+
+                result
+            })
+        }
+        ).collect();
+
+        let mut flattened_data = Vec::with_capacity((resolution.0 * resolution.1 * 3) as usize);
+
+        for result in data {
+            for c in result {
+                flattened_data.push(c.0);
+                flattened_data.push(c.1);
+                flattened_data.push(c.2);
+            }
+        }
+
+        flattened_data
     }
 
     //noinspection DuplicatedCode
