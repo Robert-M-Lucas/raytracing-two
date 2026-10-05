@@ -1,5 +1,8 @@
-use crate::{objects::Object, colour::{colour_getters::ColourGetter, Colour}, lights::Light};
-
+use crate::{
+    colour::{colour_getters::ColourGetter, Colour},
+    lights::Light,
+    objects::Object,
+};
 
 pub struct RenderConfig {
     pub resolution: (u32, u32),

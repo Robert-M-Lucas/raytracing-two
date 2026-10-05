@@ -1,9 +1,8 @@
-use crate::colour::Colour;
-use crate::maths::{vectors::V3, lines::Line};
-use crate::maths::Intersection;
-use super::SurfaceType;
 use super::Object;
-
+use super::SurfaceType;
+use crate::colour::Colour;
+use crate::maths::Intersection;
+use crate::maths::{lines::Line, vectors::V3};
 
 #[allow(dead_code)]
 pub struct Sphere {
@@ -22,7 +21,7 @@ impl Sphere {
             radius: radius,
             colour: colour,
             surface_type: surface_type,
-            cached_closest_intersect: None
+            cached_closest_intersect: None,
         }
     }
 }
@@ -33,7 +32,9 @@ impl Object for Sphere {
     //     &Sphere::new(self.centre, self.radius, self.colour, self.light_behaviour)
     // }
 
-    fn as_any(&self) -> &dyn Object { self }
+    fn as_any(&self) -> &dyn Object {
+        self
+    }
 
     fn get_surface_type(&self) -> &SurfaceType {
         &self.surface_type
@@ -41,85 +42,102 @@ impl Object for Sphere {
 
     fn get_intersections(&self, line: &Line) -> Vec<Intersection> {
         let a = line.vector.dot(&line.vector);
-        if a == 0.0 { return Vec::new(); }
+        if a == 0.0 {
+            return Vec::new();
+        }
 
         let b = 2.0 * (line.vector.dot(&line.point) - line.vector.dot(&self.centre));
-        let c = line.point.dot(&line.point) + (-2.0 * line.point.dot(&self.centre)) + self.centre.dot(&self.centre) + (-(self.radius * self.radius));
+        let c = line.point.dot(&line.point)
+            + (-2.0 * line.point.dot(&self.centre))
+            + self.centre.dot(&self.centre)
+            + (-(self.radius * self.radius));
 
         let under_root = b * b - 4.0 * a * c;
 
-        if under_root < 0.0 { return Vec::new(); }
+        if under_root < 0.0 {
+            return Vec::new();
+        }
 
         let sol_1 = (-b + under_root.sqrt()) / (2.0 * a);
         let int_1 = Intersection::new(line, sol_1, &line.scale(sol_1));
-        if  under_root == 0.0 { return vec!(int_1.clone(), int_1); }
+        if under_root == 0.0 {
+            return vec![int_1.clone(), int_1];
+        }
 
         let sol_2 = (-b - under_root.sqrt()) / (2.0 * a);
         let int_2 = Intersection::new(line, sol_2, &line.scale(sol_2));
 
-        vec!(int_1, int_2)
+        vec![int_1, int_2]
     }
 
     fn get_normal(&self, intersection: &Intersection) -> V3 {
         intersection.position - self.centre
     }
 
-/*
-    fn get_intersections_and_cache(&mut self, line: &Line) -> Vec<Intersection> {
-        let a = line.vector.dot(&line.vector);
-        if a == 0.0 {
-            self.cached_closest_intersect = None;
-            return Vec::new();
+    /*
+        fn get_intersections_and_cache(&mut self, line: &Line) -> Vec<Intersection> {
+            let a = line.vector.dot(&line.vector);
+            if a == 0.0 {
+                self.cached_closest_intersect = None;
+                return Vec::new();
+            }
+
+            let b = 2.0 * (line.vector.dot(&line.point) - line.vector.dot(&self.centre));
+            let c = &line.point.dot(&line.point) + (-2.0 * line.point.dot(&self.centre)) + self.centre.dot(&self.centre) + (-(self.radius * self.radius));
+
+            let under_root = b * b - 4.0 * a * c;
+
+            if under_root < 0.0 {
+                self.cached_closest_intersect = None;
+                return Vec::new();
+            }
+
+            let sol_1 = (-b + under_root.sqrt()) / (2.0 * a);
+            let int_1 = Intersection::new(sol_1, &line.scale(sol_1), &self.centre);
+            if under_root == 0.0 {
+                self.cached_closest_intersect = Some(vec!(int_1.clone()));
+                return vec!(int_1);
+            }
+
+            let sol_2 = (-b - under_root.sqrt()) / (2.0 * a);
+            let int_2 = Intersection::new(sol_2, &line.scale(sol_2), &self.centre);
+
+            let out = vec!(int_1, int_2);
+            let closest = Intersection::closest(&out, 0.0);
+            if closest.is_none() { self.cached_closest_intersect = None }
+            else {
+                self.cached_closest_intersect = Some(vec!(out[0].clone(), out[1].clone()));
+            }
+            out
         }
-
-        let b = 2.0 * (line.vector.dot(&line.point) - line.vector.dot(&self.centre));
-        let c = &line.point.dot(&line.point) + (-2.0 * line.point.dot(&self.centre)) + self.centre.dot(&self.centre) + (-(self.radius * self.radius));
-
-        let under_root = b * b - 4.0 * a * c;
-
-        if under_root < 0.0 { 
-            self.cached_closest_intersect = None;
-            return Vec::new(); 
-        }
-
-        let sol_1 = (-b + under_root.sqrt()) / (2.0 * a);
-        let int_1 = Intersection::new(sol_1, &line.scale(sol_1), &self.centre);
-        if under_root == 0.0 { 
-            self.cached_closest_intersect = Some(vec!(int_1.clone()));
-            return vec!(int_1); 
-        }
-
-        let sol_2 = (-b - under_root.sqrt()) / (2.0 * a);
-        let int_2 = Intersection::new(sol_2, &line.scale(sol_2), &self.centre);
-
-        let out = vec!(int_1, int_2);
-        let closest = Intersection::closest(&out, 0.0);
-        if closest.is_none() { self.cached_closest_intersect = None }
-        else {
-            self.cached_closest_intersect = Some(vec!(out[0].clone(), out[1].clone()));
-        }
-        out
-    }
-*/
+    */
 
     fn get_colour(&self, _intersection: &Intersection) -> &Colour {
         &self.colour
     }
 
     fn get_reflection_line(&self, line: &Line, intersection: &Intersection) -> Line {
-        Line::new(&intersection.position, 
-            &line.vector.reflected(&(self.centre.clone() - intersection.position)))
+        Line::new(
+            &intersection.position,
+            &line
+                .vector
+                .reflected(&(self.centre.clone() - intersection.position)),
+        )
     }
 
     fn get_transparent_line(&self, line: &Line, intersection: &Intersection) -> Line {
-        let theta1 = line.vector.angle_to(&(self.centre.clone() - &intersection.position));
+        let theta1 = line
+            .vector
+            .angle_to(&(self.centre.clone() - &intersection.position));
         let theta2 = (theta1.sin() / self.surface_type.refractive_index).asin();
         let a = self.radius * theta2.cos();
         let b = a / (theta1 - theta2).cos();
 
         let reflection_point = &intersection.position + (line.vector.normalised() * b);
 
-        let new_vector = line.vector.reflected(&(reflection_point.clone() - &self.centre.clone()));
+        let new_vector = line
+            .vector
+            .reflected(&(reflection_point.clone() - &self.centre.clone()));
         let new_point = &reflection_point + &(&new_vector.normalised() * (b));
 
         Line::new(&new_point, &new_vector.normalised())
@@ -137,7 +155,7 @@ impl Object for Sphere {
 
         match self.light_behaviour {
             LightBehaviour::Solid => { outgoing_line = None; alpha = 1.0; },
-            LightBehaviour::Reflective(a) => { 
+            LightBehaviour::Reflective(a) => {
                 outgoing_line = Some(Line::new(&hit.position, &incoming_ray.vector.reflected(&(self.centre.clone() - &hit.position))));
                 alpha = a;
             },
@@ -168,7 +186,7 @@ impl Object for Sphere {
 
         match self.light_behaviour {
             LightBehaviour::Solid => { outgoing_line = None; alpha = 1.0; },
-            LightBehaviour::Reflective(a) => { 
+            LightBehaviour::Reflective(a) => {
                 outgoing_line = Some(Line::new(&hit.position, &incoming_ray.vector.reflected(&(self.centre.clone() - &hit.position))));
                 alpha = a;
             },

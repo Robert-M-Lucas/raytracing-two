@@ -1,18 +1,25 @@
 use std::f64::consts::PI;
 
-use crate::{maths::{vectors::V3, lines::SizedLine}, colour::Colour};
+use crate::{
+    colour::Colour,
+    maths::{lines::SizedLine, vectors::V3},
+};
 
 use super::Light;
 
 pub struct PointLight {
     position: V3,
     colour: Colour,
-    intensity: f64
+    intensity: f64,
 }
 
 impl PointLight {
     pub fn new(position: &V3, colour: &Colour, intensity: f64) -> Self {
-        Self { position: position.clone(), colour: colour.clone(), intensity }
+        Self {
+            position: position.clone(),
+            colour: colour.clone(),
+            intensity,
+        }
     }
 }
 

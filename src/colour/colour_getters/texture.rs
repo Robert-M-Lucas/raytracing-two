@@ -1,13 +1,13 @@
-use std::ops::{Index, IndexMut};
 use image;
+use std::ops::{Index, IndexMut};
 
-use super::ColourGetter;
 use super::super::Colour;
+use super::ColourGetter;
 
 #[allow(dead_code)]
 pub struct Texture {
     size: (usize, usize),
-    data: Vec<Colour>
+    data: Vec<Colour>,
 }
 
 #[allow(dead_code)]
@@ -30,7 +30,11 @@ impl Texture {
         let mut data = Vec::with_capacity(size);
 
         for i in 0..size {
-            data.push(Colour::from_u8(raw_data[i*3], raw_data[i*3+1], raw_data[i*3+2]));
+            data.push(Colour::from_u8(
+                raw_data[i * 3],
+                raw_data[i * 3 + 1],
+                raw_data[i * 3 + 2],
+            ));
         }
 
         Ok(Self {
@@ -42,8 +46,10 @@ impl Texture {
 
 impl ColourGetter for Texture {
     fn get_colour(&self, position: (f64, f64)) -> &Colour {
-        let position: (usize, usize) = ((position.0.abs().fract() * (self.size.0 as f64)).floor() as usize, 
-            (position.1.abs().fract() * (self.size.1 as f64)).floor() as usize);
+        let position: (usize, usize) = (
+            (position.0.abs().fract() * (self.size.0 as f64)).floor() as usize,
+            (position.1.abs().fract() * (self.size.1 as f64)).floor() as usize,
+        );
         &self.data[position.1 * self.size.1 + position.0]
     }
 }

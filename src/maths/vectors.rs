@@ -1,23 +1,28 @@
+use rand::rngs::ThreadRng;
+use rand::Rng;
 use std::f64::consts::PI;
 use std::ops;
-use rand::Rng;
-use rand::rngs::ThreadRng;
 
 #[derive(Debug, Clone, Copy)]
 pub struct V3 {
     pub x: f64,
     pub y: f64,
-    pub z: f64
+    pub z: f64,
 }
 
 impl V3 {
-
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
 
-    pub fn clone(&self) -> V3 { V3 { x: self.x, y: self.y, z: self.z } }
-    
+    pub fn clone(&self) -> V3 {
+        V3 {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+        }
+    }
+
     pub fn normalised(&self) -> V3 {
         let diff = 1.0 / self.magnitude();
         V3::new(self.x * diff, self.y * diff, self.z * diff)
@@ -30,7 +35,7 @@ impl V3 {
     pub fn dot(&self, rhs: &V3) -> f64 {
         (self.x * rhs.x) + (self.y * rhs.y) + (self.z * rhs.z)
     }
-    
+
     pub fn cross(&self, rhs: &V3) -> V3 {
         V3::new(
             self.y * rhs.z - self.z * rhs.y,
@@ -51,22 +56,20 @@ impl V3 {
         let centered = self.clone() - about;
 
         &V3::new(
-            centered.x * radians.cos() + centered.z * radians.sin(), 
+            centered.x * radians.cos() + centered.z * radians.sin(),
             centered.y,
-            -centered.x * radians.sin() + centered.z * radians.cos()
-        ) 
-        + about
+            -centered.x * radians.sin() + centered.z * radians.cos(),
+        ) + about
     }
 
     pub fn rotate_z(self, about: &V3, radians: f64) -> V3 {
         let centered = self - about;
 
         &V3::new(
-            centered.x * radians.cos() - centered.y * radians.sin(), 
+            centered.x * radians.cos() - centered.y * radians.sin(),
             centered.x * radians.sin() + centered.y * radians.cos(),
-            centered.z
-        ) 
-        + about
+            centered.z,
+        ) + about
     }
 
     pub fn reflected(&self, normal: &V3) -> V3 {
@@ -77,8 +80,11 @@ impl V3 {
     pub fn get_random(direction: &V3, spread: f64, rng: &mut ThreadRng) -> V3 {
         let b3 = direction.normalised();
         let different;
-        if b3.x < 0.5 { different = V3::new(1.0, 0.0, 0.0); }
-        else { different = V3::new(0.0, 1.0, 0.0); }
+        if b3.x < 0.5 {
+            different = V3::new(1.0, 0.0, 0.0);
+        } else {
+            different = V3::new(0.0, 1.0, 0.0);
+        }
         let b1 = b3.cross(&different).normalised();
         let b2 = b1.cross(&b3).normalised();
 
@@ -92,21 +98,53 @@ impl V3 {
     }
 
     #[allow(non_snake_case)]
-    pub const ZERO: V3 = V3 { x: 0.0, y: 0.0, z: 0.0};
+    pub const ZERO: V3 = V3 {
+        x: 0.0,
+        y: 0.0,
+        z: 0.0,
+    };
     #[allow(non_snake_case)]
-    pub const ONE: V3 = V3 { x: 1.0, y: 1.0, z: 1.0};
+    pub const ONE: V3 = V3 {
+        x: 1.0,
+        y: 1.0,
+        z: 1.0,
+    };
     #[allow(non_snake_case)]
-    pub const FORWARD: V3 = V3 { x: 1.0, y: 0.0, z: 0.0};
+    pub const FORWARD: V3 = V3 {
+        x: 1.0,
+        y: 0.0,
+        z: 0.0,
+    };
     #[allow(non_snake_case)]
-    pub const BACK: V3 = V3 { x: -1.0, y: 0.0, z: 0.0};
+    pub const BACK: V3 = V3 {
+        x: -1.0,
+        y: 0.0,
+        z: 0.0,
+    };
     #[allow(non_snake_case)]
-    pub const UP: V3 = V3 { x: 0.0, y: 1.0, z: 0.0};
+    pub const UP: V3 = V3 {
+        x: 0.0,
+        y: 1.0,
+        z: 0.0,
+    };
     #[allow(non_snake_case)]
-    pub const DOWN: V3 = V3 { x: 0.0, y: -1.0, z: 0.0};
+    pub const DOWN: V3 = V3 {
+        x: 0.0,
+        y: -1.0,
+        z: 0.0,
+    };
     #[allow(non_snake_case)]
-    pub const LEFT: V3 = V3 { x: 0.0, y: 0.0, z: -1.0};
+    pub const LEFT: V3 = V3 {
+        x: 0.0,
+        y: 0.0,
+        z: -1.0,
+    };
     #[allow(non_snake_case)]
-    pub const RIGHT: V3 = V3 { x: 0.0, y: 0.0, z: 1.0};
+    pub const RIGHT: V3 = V3 {
+        x: 0.0,
+        y: 0.0,
+        z: 1.0,
+    };
 }
 
 impl ops::Add<V3> for V3 {
@@ -140,7 +178,6 @@ impl ops::Add<&V3> for &V3 {
         V3::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
-
 
 impl ops::Sub<V3> for V3 {
     type Output = V3;

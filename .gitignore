@@ -1,2 +1,4 @@
 /target
 /renders
+.direnv
+.idea
